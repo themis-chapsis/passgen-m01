@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Password Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --mono: 'Roboto Mono', monospace;
+  --sans: 'Roboto', sans-serif;
+
+  /* ── Light tokens ── */
+  --bg:            #ffffff;
+  --bg-secondary:  #f7f7f7;
+  --bg-input:      #ffffff;
+  --border:        #e0e0e0;
+  --border-strong: #111111;
+  --text:          #111111;
+  --text-sub:      #aaaaaa;
+  --text-inv:      #ffffff;
+  --divider:       #ebebeb;
+  --track-off:     #e0e0e0;
+  --toggle-off:    #dddddd;
+  --fade-stop:     #ffffff;
+  --shadow:
+    0 0 0 1px rgba(0,0,0,0.06),
+    0 4px 8px rgba(0,0,0,0.04),
+    0 12px 28px rgba(0,0,0,0.10),
+    0 32px 56px rgba(0,0,0,0.06);
+}
+
+/* Dark tokens applied to html[data-theme="dark"] */
+html[data-theme="dark"] {
+  --bg:            #1a1a1a;
+  --bg-secondary:  #111111;
+  --bg-input:      #1a1a1a;
+  --border:        #333333;
+  --border-strong: #ffffff;
+  --text:          #f0f0f0;
+  --text-sub:      #666666;
+  --text-inv:      #111111;
+  --divider:       #2a2a2a;
+  --track-off:     #333333;
+  --toggle-off:    #444444;
+  --fade-stop:     #1a1a1a;
+  --shadow:
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 4px 8px rgba(0,0,0,0.3),
+    0 12px 28px rgba(0,0,0,0.4),
+    0 32px 56px rgba(0,0,0,0.3);
+}
+
+body {
+  width: 360px;
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  transition: background 0.25s, color 0.25s, box-shadow 0.25s;
+}
+
+:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+  pointer-events: none;
+}
+
+.block { padding: 18px 20px; border-bottom: 1px solid var(--divider); }
+
+.section-label {
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text); display: block;
+}
+
+/* ── Header ── */
+.block-header { padding: 20px 20px 16px; border-top: 1px solid var(--divider); border-bottom: 1px solid var(--divider); display: flex; align-items: center; justify-content: space-between; }
+.block-header h1 { font-family: var(--sans); font-size: 22px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); line-height: 1.2; white-space: nowrap; }
+.block-header h1 span { font-weight: 400; color: var(--text); margin-left: 6px; font-size: 18px; }
+
+/* ── Password ── */
+.block-password { padding: 18px 20px; border-bottom: 1px solid var(--divider); }
+.pw-display-wrap { position: relative; margin-top: 14px; margin-bottom: 10px; }
+.pw-display { display: flex; align-items: center; border-bottom: 1.5px solid var(--border); padding-bottom: 10px; background: transparent; position: relative; }
+.pw-text-clip { flex: 1; position: relative; overflow: hidden; min-width: 0; }
+.pw-display input {
+  width: 100%; background: none; border: none; outline: none;
+  font-family: var(--mono); font-size: 15px; font-weight: 400;
+  letter-spacing: 0.04em; color: var(--text);
+  height: 36px; line-height: 36px; padding: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: clip;
+  transform: translateY(2px);
+}
+.pw-display input::placeholder { color: var(--text-sub); letter-spacing: 0; font-size: 14px; font-family: var(--sans); }
+
+.pw-fade {
+  position: absolute; top: 0; right: 0;
+  width: 48px; height: 100%;
+  background: linear-gradient(to right, transparent, var(--fade-stop));
+  pointer-events: none; opacity: 0; transition: opacity 0.2s;
+}
+.pw-fade.visible { opacity: 1; }
+
+.eye-btn { width: 32px; height: 32px; border: none; background: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-sub); transition: color 0.12s; flex-shrink: 0; margin-left: 4px; }
+.eye-btn:hover { color: var(--text); }
+.eye-btn .material-symbols-outlined { font-size: 24px; color: currentColor; }
+
+.pw-actions-row { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 8px; height: 42px; }
+.copied-inline { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--text); opacity: 0; pointer-events: none; transition: opacity 0.2s ease; white-space: nowrap; }
+.copied-inline.show { opacity: 1; }
+.copied-inline svg { width: 14px; height: 14px; stroke: var(--text); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+.action-btn { width: 46px; height: 42px; border: 1.5px solid var(--border); background: var(--bg); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text); transition: background 0.12s, border-color 0.12s; }
+.action-btn:hover { background: var(--bg-secondary); border-color: var(--text-sub); }
+.action-btn:active { background: var(--track-off); }
+.action-btn .material-symbols-outlined { font-size: 20px; color: currentColor; font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 20; }
+.action-btn.copied { border-color: var(--text); background: var(--text); color: var(--bg); }
+
+/* error popover */
+.popover { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(10px); font-size: 14px; font-weight: 500; padding: 10px 20px 10px 16px; border-radius: 28px; display: flex; align-items: center; gap: 8px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease; z-index: 100; background: #b00020; color: #fff; }
+.popover.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.popover svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── Length ── */
+.block-length { padding: 18px 20px 0px; border-bottom: 1px solid var(--divider); }
+.length-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.length-label-wrap { padding-top: 0; display: flex; align-items: flex-start; }
+.length-field-group { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.length-field-sublabel { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-sub); line-height: 1; }
+.length-number-wrap { border: 2px solid var(--text); border-radius: 10px; background: var(--text); overflow: hidden; }
+.length-number-input { width: 72px; text-align: center; font-size: 22px; font-weight: 400; color: var(--bg); border: none; outline: none; background: var(--text); padding: 6px 6px 8px; display: block; -moz-appearance: textfield; font-family: var(--sans); line-height: 1; }
+.length-number-input::-webkit-inner-spin-button, .length-number-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+/* ── Slider ── */
+.slider-wrap { position: relative; padding-top: 32px; }
+
+.slider-tooltip { position: absolute; top: 0; background: var(--text); color: var(--bg); font-size: 13px; font-weight: 500; padding: 4px 10px; border-radius: 8px; pointer-events: none; opacity: 0; transform: translateX(-50%) translateY(4px); transition: opacity 0.15s, transform 0.15s; user-select: none; }
+.slider-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--text); }
+.slider-wrap.show-tip .slider-tooltip { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 20px; background: transparent; cursor: pointer; display: block; }
+input[type=range]:focus { outline: none; }
+input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--text); }
+input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--track-off); }
+input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--track-off); }
+input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--text); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 4px; height: 22px; border-radius: 2px; background: var(--text); margin-top: -9px; box-shadow: 0 1px 4px rgba(0,0,0,0.22); cursor: grab; transition: width 0.1s, height 0.1s; }
+input[type=range]:active::-webkit-slider-thumb { width: 6px; height: 26px; border-radius: 3px; cursor: grabbing; }
+input[type=range]::-moz-range-thumb { width: 4px; height: 22px; border-radius: 2px; background: var(--text); border: none; }
+
+.slider-end-labels { display: flex; justify-content: space-between; margin-top: 6px; margin-bottom: 10px; }
+.slider-end-labels span { font-size: 12px; font-weight: 500; color: var(--text); }
+
+/* ── Accordion ── */
+.block-options { padding: 18px 20px; border-bottom: 1px solid var(--divider); }
+.accordion-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; background: none; border: none; padding: 0; cursor: pointer; text-align: left; border-radius: 4px; }
+.accordion-trigger:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+.chevron-btn { width: 32px; height: 32px; border: 1.5px solid var(--border); background: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, background 0.15s; flex-shrink: 0; pointer-events: none; }
+.accordion-trigger:hover .chevron-btn { border-color: var(--text-sub); background: var(--bg-secondary); }
+.accordion-chevron { font-size: 24px; color: var(--text); transition: transform 0.25s cubic-bezier(.4,0,.2,1); display: inline-block; }
+.accordion-trigger[aria-expanded="true"] .accordion-chevron { transform: rotate(180deg); }
+.accordion-body { overflow: hidden; max-height: 0; transition: max-height 0.35s cubic-bezier(.4,0,.2,1), padding-top 0.25s; padding-top: 0; }
+.accordion-body.open { max-height: 1000px; padding-top: 16px; }
+
+/* ── Option rows ── */
+.option-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--divider); }
+.option-row:last-child { border-bottom: none; }
+.option-name { font-size: 16px; font-weight: 500; color: var(--text); }
+.option-desc { font-size: 13px; color: var(--text); opacity: 0.42; margin-top: 2px; }
+
+.warning-banner { display: none; align-items: center; gap: 8px; background: #fffbeb; border: 1px solid #f0d070; border-radius: 8px; padding: 9px 13px; margin-top: 12px; font-size: 13px; font-weight: 500; color: #7a5800; line-height: 1.4; }
+.warning-banner.visible { display: flex; }
+.warning-banner svg { width: 15px; height: 15px; stroke: #a07000; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+html[data-theme="dark"] .warning-banner { background: #2a2000; border-color: #6a5000; color: #f0c040; }
+html[data-theme="dark"] .warning-banner svg { stroke: #f0c040; }
+
+/* ── Toggle ── */
+.toggle { position: relative; width: 46px; height: 28px; flex-shrink: 0; }
+.toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+.toggle-track { position: absolute; inset: 0; border-radius: 14px; background: var(--toggle-off); transition: background 0.2s; cursor: pointer; }
+.toggle input:checked ~ .toggle-track { background: var(--text); }
+.toggle-thumb { position: absolute; top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--bg); box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: transform 0.2s cubic-bezier(.4,0,.2,1); pointer-events: none; }
+.toggle input:checked ~ .toggle-track .toggle-thumb { transform: translateX(18px); }
+.toggle input:focus-visible ~ .toggle-track { outline: 2px solid var(--text); outline-offset: 2px; }
+
+/* ── Segmented control (Appearance) ── */
+.segmented {
+  display: flex;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.seg-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border: none;
+  background: var(--bg);
+  color: var(--text-sub);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.seg-btn:last-child { border-right: none; }
+.seg-btn:hover { background: var(--bg-secondary); color: var(--text); }
+.seg-btn.active { background: var(--text); color: var(--bg); }
+
+/* ── Strength ── */
+.block-strength { padding: 18px 20px 22px; background: var(--bg-secondary); }
+.strength-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+@keyframes synthwave {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Fixed-size pill — never changes height or width */
+.strength-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;       /* fixed width — enough for "Very Strong" */
+  height: 30px;      /* fixed height — never shifts */
+  border-radius: 20px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
+  white-space: nowrap;
+  background: #111; color: #fff;
+  border: none;
+  transition: background 0.25s, color 0.25s;
+  flex-shrink: 0;
+}
+.strength-badge.weak      { background: #999; color: #fff; }
+.strength-badge.fair      { background: #777; color: #fff; }
+.strength-badge.moderate  { background: #555; color: #fff; }
+.strength-badge.strong    { background: #333; color: #fff; }
+.strength-badge.vstrong   { background: #111; color: #fff; }
+.strength-badge.excellent { background: #000; color: #fff; }
+.strength-badge.aes256    { background: #000; color: #fff; }
+
+/* Bonkers: pseudo-element provides the solid pill,
+   the span inside carries the gradient text */
+.strength-badge.bonkers {
+  background: transparent !important;
+  color: transparent;
+  position: relative;
+  overflow: visible;
+}
+.strength-badge.bonkers::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: #111;
+  z-index: 0;
+}
+.strength-badge.bonkers .bonkers-text {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(270deg, #ff2d9b, #ff6ec7, #00f5ff, #a855f7, #ff2d9b);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: synthwave 2.4s ease infinite;
+}
+
+/* Dark mode */
+html[data-theme="dark"] .strength-badge.weak      { background: #555; color: #eee; }
+html[data-theme="dark"] .strength-badge.fair      { background: #666; color: #fff; }
+html[data-theme="dark"] .strength-badge.moderate  { background: #777; color: #fff; }
+html[data-theme="dark"] .strength-badge.strong    { background: #999; color: #111; }
+html[data-theme="dark"] .strength-badge.vstrong   { background: #bbb; color: #111; }
+html[data-theme="dark"] .strength-badge.excellent { background: #ddd; color: #111; }
+html[data-theme="dark"] .strength-badge.aes256    { background: #fff; color: #000; }
+html[data-theme="dark"] .strength-badge.bonkers::before {
+  background: #fff;
+}
+
+.strength-segments { display: flex; gap: 4px; }
+.seg { flex: 1; height: 5px; border-radius: 3px; background: var(--track-off); transition: background 0.3s; }
+.seg.active.weak      { background: #999; }
+.seg.active.fair      { background: #777; }
+.seg.active.moderate  { background: #555; }
+.seg.active.strong    { background: #333; }
+.seg.active.vstrong   { background: #111; }
+.seg.active.excellent { background: #000; }
+.seg.active.aes256    { background: #000; }
+.seg.active.bonkers   { background: #111; }
+html[data-theme="dark"] .seg.active.weak      { background: #666; }
+html[data-theme="dark"] .seg.active.fair      { background: #777; }
+html[data-theme="dark"] .seg.active.moderate  { background: #888; }
+html[data-theme="dark"] .seg.active.strong    { background: #aaa; }
+html[data-theme="dark"] .seg.active.vstrong   { background: #ccc; }
+html[data-theme="dark"] .seg.active.excellent { background: #ddd; }
+html[data-theme="dark"] .seg.active.aes256    { background: #fff; }
+html[data-theme="dark"] .seg.active.bonkers   { background: #fff; }
+
+/* ── Info button ── */
+.info-btn {
+  width: 28px; height: 28px;
+  border: none; background: none;
+  border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #888888;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.info-btn:hover { color: var(--text); background: var(--bg-secondary); }
+.info-btn .material-symbols-outlined { font-size: 24px; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+/* ── Credits panel ── */
+.credits-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.credits-overlay.show { opacity: 1; pointer-events: all; }
+.credits-panel {
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 24px;
+  width: 300px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  transform: translateY(8px);
+  transition: transform 0.2s;
+}
+.credits-overlay.show .credits-panel { transform: translateY(0); }
+.credits-title {
+  font-size: 18px; font-weight: 700; color: var(--text);
+  margin-bottom: 18px;
+}
+.credits-row {
+  font-size: 15px; color: var(--text); line-height: 1.7;
+  margin-bottom: 8px;
+}
+.credits-row span { color: var(--text); font-size: 15px; }
+.credits-divider { height: 1px; background: var(--divider); margin: 16px 0; }
+.credits-close {
+  width: 100%; padding: 12px;
+  border: 1.5px solid var(--border); border-radius: 8px;
+  background: none; cursor: pointer;
+  font-family: var(--sans); font-size: 15px; font-weight: 500;
+  color: var(--text); margin-top: 16px;
+  transition: background 0.12s;
+}
+.credits-close:hover { background: var(--bg-secondary); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div aria-live="polite" aria-atomic="true" id="sr-announce" class="sr-only"></div>
+<div class="popover" id="error-popover" role="alert">
+  <span class="material-symbols-outlined" aria-hidden="true" style="font-size:20px;font-variation-settings:'FILL' 0,'wght' 500,'GRAD' 0,'opsz' 20;">error</span>
+  Could not copy — try manually
+</div>
+
+<main style="border-radius:16px;overflow:hidden;">
+
+  <div class="block-header">
+    <h1>Password Generator<span>M01</span></h1>
+    <button class="info-btn" id="btn-info" aria-label="About & Credits">
+      <span class="material-symbols-outlined">info</span>
+    </button>
+  </div>
+
+  <!-- PASSWORD -->
+  <div class="block-password">
+    <span class="section-label">Password</span>
+    <div class="pw-display-wrap">
+      <div class="pw-display">
+        <div class="pw-text-clip">
+          <input type="text" id="pw-field" readonly aria-readonly="true" placeholder="Generating…" autocomplete="off" spellcheck="false" aria-label="Generated password">
+          <div class="pw-fade" id="pw-fade" aria-hidden="true"></div>
+        </div>
+        <button class="eye-btn" id="btn-vis" aria-label="Show password" aria-pressed="false">
+          <span class="material-symbols-outlined" id="icon-vis" aria-hidden="true">visibility</span>
+        </button>
+      </div>
+    </div>
+    <div class="pw-actions-row">
+      <div class="copied-inline" id="copied-inline" role="status" aria-live="polite">
+        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:20px;font-variation-settings:'FILL' 0,'wght' 500,'GRAD' 0,'opsz' 20;">check</span>
+        Copied to clipboard
+      </div>
+      <button class="action-btn" id="btn-regen" aria-label="Generate new password">
+        <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
+      </button>
+      <button class="action-btn" id="btn-copy" aria-label="Copy password to clipboard">
+        <span class="material-symbols-outlined" id="icon-copy" aria-hidden="true">content_copy</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- LENGTH -->
+  <div class="block-length">
+    <div class="length-top">
+      <div class="length-label-wrap">
+        <label class="section-label" for="length-number">Length</label>
+      </div>
+      <div class="length-field-group">
+        <span class="length-field-sublabel">Characters</span>
+        <div class="length-number-wrap">
+          <input type="number" id="length-number" class="length-number-input" min="6" max="64" value="16" aria-label="Password length in characters, 6 to 64">
+        </div>
+      </div>
+    </div>
+    <div class="slider-wrap" id="slider-wrap">
+      <div class="slider-tooltip" id="slider-tooltip" aria-hidden="true">16</div>
+      <input type="range" id="length-slider" min="6" max="64" value="16" step="1" aria-label="Password length" aria-valuemin="6" aria-valuemax="64" aria-valuenow="16">
+      <div class="slider-end-labels" aria-hidden="true"><span>6</span><span>64</span></div>
+    </div>
+  </div>
+
+  <!-- OPTIONS -->
+  <div class="block-options">
+    <button class="accordion-trigger" id="options-trigger" aria-expanded="false" aria-controls="options-body">
+      <span class="section-label">Options</span>
+      <div class="chevron-btn" aria-hidden="true">
+        <span class="material-symbols-outlined accordion-chevron">expand_more</span>
+      </div>
+    </button>
+    <div class="accordion-body" id="options-body" role="region" aria-labelledby="options-trigger">
+      <fieldset style="border:none;padding:0;margin:0;">
+
+        <div class="option-row">
+          <div><div class="option-name" id="lbl-numbers">Numbers</div><div class="option-desc">Include 0–9</div></div>
+          <label class="toggle"><input type="checkbox" id="sw-numbers" role="switch" aria-labelledby="lbl-numbers" aria-checked="true" checked><div class="toggle-track" aria-hidden="true"><div class="toggle-thumb"></div></div></label>
+        </div>
+
+        <div class="option-row">
+          <div><div class="option-name" id="lbl-symbols">Symbols</div><div class="option-desc">Include !@#$%^&amp;*</div></div>
+          <label class="toggle"><input type="checkbox" id="sw-symbols" role="switch" aria-labelledby="lbl-symbols" aria-checked="true" checked><div class="toggle-track" aria-hidden="true"><div class="toggle-thumb"></div></div></label>
+        </div>
+
+        <div class="option-row">
+          <div><div class="option-name" id="lbl-mixed">Mixed Case</div><div class="option-desc">Include A–Z and a–z</div></div>
+          <label class="toggle"><input type="checkbox" id="sw-mixed" role="switch" aria-labelledby="lbl-mixed" aria-checked="true" checked><div class="toggle-track" aria-hidden="true"><div class="toggle-thumb"></div></div></label>
+        </div>
+
+        <!-- Appearance row -->
+        <div class="option-row">
+          <div><div class="option-name">Appearance</div></div>
+          <div class="segmented" role="radiogroup" aria-label="Colour scheme">
+            <button class="seg-btn active" id="theme-system" role="radio" aria-checked="true">System</button>
+            <button class="seg-btn" id="theme-light" role="radio" aria-checked="false">Light</button>
+            <button class="seg-btn" id="theme-dark" role="radio" aria-checked="false">Dark</button>
+          </div>
+        </div>
+
+      </fieldset>
+
+      <div class="warning-banner" id="all-off-warning" role="alert">
+        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:16px;color:#a07000;">warning</span>
+        Enable at least one option — using lowercase only
+      </div>
+    </div>
+  </div>
+
+  <!-- STRENGTH -->
+  <div class="block-strength">
+    <div class="strength-header">
+      <span class="section-label">Strength</span>
+      <span class="strength-badge strong" id="strength-badge" aria-live="polite" aria-label="Password strength: Strong">Strong</span>
+    </div>
+    <div class="strength-segments" id="strength-segs" aria-hidden="true">
+      <div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Credits overlay -->
+<div class="credits-overlay" id="credits-overlay" role="dialog" aria-modal="true" aria-labelledby="credits-title-el">
+  <div class="credits-panel">
+    <div class="credits-title" id="credits-title-el">Password Generator M01</div>
+    <div class="credits-row">Designed &amp; directed by<br><strong>Themis Chapsis</strong></div>
+    <div class="credits-row"><span>Built with Claude — Anthropic</span></div>
+    <div class="credits-row"><span>Released May 2026</span></div>
+    <div class="credits-divider"></div>
+    <div class="credits-row"><span>Roboto, Roboto Mono, Material Symbols</span><br><span>Google Fonts — Apache 2.0</span></div>
+    <button class="credits-close" id="credits-close">Close</button>
+  </div>
+</div>
+
+<script>
+const LOWER='abcdefghijklmnopqrstuvwxyz',UPPER='ABCDEFGHIJKLMNOPQRSTUVWXYZ',DIGITS='0123456789',SYMS='!@#$%^&*()_+-=[]{}|;:,.?';
+const SNAPS=[8,16,24,32,40,48,56,64],SNAP_R=3;
+let currentPw='',visible=false,copyTimer=null,errorTimer=null;
+
+const field      = document.getElementById('pw-field');
+const pwFade     = document.getElementById('pw-fade');
+const slider     = document.getElementById('length-slider');
+const numInput   = document.getElementById('length-number');
+const sliderWrap = document.getElementById('slider-wrap');
+const tooltip    = document.getElementById('slider-tooltip');
+const copiedInl  = document.getElementById('copied-inline');
+const errorPop   = document.getElementById('error-popover');
+const iconVis    = document.getElementById('icon-vis');
+const iconCopyEl = document.getElementById('icon-copy');
+const badge      = document.getElementById('strength-badge');
+const srAnn      = document.getElementById('sr-announce');
+const allOffWarn = document.getElementById('all-off-warning');
+const copyBtn    = document.getElementById('btn-copy');
+
+/* ── Theme ── */
+const sysMQ = window.matchMedia('(prefers-color-scheme: dark)');
+let themeMode = 'system'; // 'system' | 'light' | 'dark'
+
+function applyTheme() {
+  const dark = themeMode === 'dark' || (themeMode === 'system' && sysMQ.matches);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  updateFade();
+  updateFill(parseInt(slider.value, 10));
+}
+
+function setTheme(mode) {
+  themeMode = mode;
+  ['system','light','dark'].forEach(m => {
+    const btn = document.getElementById('theme-'+m);
+    btn.classList.toggle('active', m === mode);
+    btn.setAttribute('aria-checked', m === mode ? 'true' : 'false');
+  });
+  applyTheme();
+}
+
+document.getElementById('theme-system').addEventListener('click', () => setTheme('system'));
+document.getElementById('theme-light').addEventListener('click',  () => setTheme('light'));
+document.getElementById('theme-dark').addEventListener('click',   () => setTheme('dark'));
+sysMQ.addEventListener('change', () => { if(themeMode === 'system') applyTheme(); });
+
+/* ── Overflow fade ── */
+function updateFade() {
+  const overflows = field.scrollWidth > field.clientWidth + 2;
+  pwFade.classList.toggle('visible', overflows);
+}
+
+/* ── Accordion ── */
+const trigger = document.getElementById('options-trigger');
+const body    = document.getElementById('options-body');
+trigger.addEventListener('click', () => {
+  const open = trigger.getAttribute('aria-expanded') === 'true';
+  trigger.setAttribute('aria-expanded', open ? 'false' : 'true');
+  body.classList.toggle('open', !open);
+});
+
+/* ── Tooltip ── */
+function positionTooltip(val) { tooltip.style.left=(2+(val-6)/(64-6)*(slider.offsetWidth-4))+'px'; tooltip.textContent=val; }
+function showTip() { sliderWrap.classList.add('show-tip'); }
+function hideTip() { sliderWrap.classList.remove('show-tip'); }
+
+
+
+/* ── Snap ── */
+function snapValue(val) { for(const s of SNAPS) if(Math.abs(val-s)<=SNAP_R) return s; return val; }
+function setLength(raw, source) {
+  let val = Math.max(6, Math.min(64, Math.round(raw)));
+  if(source !== 'drag') val = snapValue(val);
+  if(source !== 'slider') { slider.value=val; slider.setAttribute('aria-valuenow',val); }
+  if(source !== 'number') numInput.value=val;
+  updateFill(val); positionTooltip(val); return val;
+}
+
+/* ── State ── */
+function getState() {
+  return { length:parseInt(slider.value,10), numbers:document.getElementById('sw-numbers').checked, symbols:document.getElementById('sw-symbols').checked, mixed:document.getElementById('sw-mixed').checked };
+}
+
+function generate(s) {
+  let pool=LOWER;
+  if(s.mixed) pool+=UPPER; if(s.numbers) pool+=DIGITS; if(s.symbols) pool+=SYMS;
+  const buf=new Uint32Array(s.length); crypto.getRandomValues(buf);
+  return Array.from(buf).map(n=>pool[n%pool.length]).join('');
+}
+
+function calcStrength(pw) {
+  let pool=0;
+  if(/[a-z]/.test(pw)) pool+=26; if(/[A-Z]/.test(pw)) pool+=26;
+  if(/[0-9]/.test(pw)) pool+=10; if(/[^a-zA-Z0-9]/.test(pw)) pool+=32;
+  if(!pool) pool=26;
+  const bits=pw.length*Math.log2(pool);
+  if(bits<35)  return{level:1,label:'Weak',       cls:'weak'     };
+  if(bits<50)  return{level:2,label:'Fair',        cls:'fair'     };
+  if(bits<70)  return{level:3,label:'Moderate',    cls:'moderate' };
+  if(bits<90)  return{level:4,label:'Strong',      cls:'strong'   };
+  if(bits<115) return{level:5,label:'Very Strong', cls:'vstrong'  };
+  if(bits<256) return{level:6,label:'Excellent',   cls:'excellent'};
+  if(bits<350) return{level:7,label:'256-bit',     cls:'aes256'   };
+  return             {level:8,label:'Bonkers',     cls:'bonkers'  };
+}
+
+/* ── Typewriter ── */
+let twTimer = null;
+function typewrite(target) {
+  clearTimeout(twTimer);
+  const len = target.length;
+  const perChar = Math.min(24, Math.max(9, Math.floor(750 / len)));
+  let i = 0;
+  field.value = '';
+  updateFade();
+  function step() {
+    i++;
+    field.value = target.slice(0, i);
+    updateFade();
+    if (i < len) twTimer = setTimeout(step, perChar);
+  }
+  twTimer = setTimeout(step, perChar);
+}
+
+/* ── Render ── */
+function render() {
+  const s=getState();
+  allOffWarn.classList.toggle('visible', !s.numbers&&!s.symbols&&!s.mixed);
+  currentPw=generate(s);
+  typewrite(visible ? currentPw : '*'.repeat(currentPw.length));
+  const {level,label,cls}=calcStrength(currentPw);
+  badge.className='strength-badge '+cls;
+  badge.setAttribute('aria-label','Password strength: '+label);
+  if(cls==='bonkers'){
+    badge.innerHTML='<span class="bonkers-text" aria-hidden="true">'+label+'</span>';
+  } else {
+    badge.textContent=label;
+  }
+  document.querySelectorAll('#strength-segs .seg').forEach((seg,i)=>{ seg.className=i<level?'seg active '+cls:'seg'; });
+  srAnn.textContent=''; requestAnimationFrame(()=>{ srAnn.textContent=`New password, ${s.length} characters. Strength: ${label}.`; });
+}
+
+/* ── Slider ── */
+slider.addEventListener('mousedown', showTip);
+slider.addEventListener('touchstart', showTip, {passive:true});
+slider.addEventListener('focus', showTip);
+slider.addEventListener('blur', hideTip);
+window.addEventListener('mouseup', hideTip);
+window.addEventListener('touchend', hideTip);
+slider.addEventListener('input', ()=>{ const raw=parseInt(slider.value,10); numInput.value=raw; updateFill(raw); positionTooltip(raw); slider.setAttribute('aria-valuenow',raw); });
+slider.addEventListener('change', ()=>{ setLength(parseInt(slider.value,10),'slider'); render(); });
+
+/* ── Number input — only render if value actually changed ── */
+let numFocusVal = null;
+numInput.addEventListener('focus', ()=>{ numFocusVal = parseInt(numInput.value, 10); });
+numInput.addEventListener('input', ()=>{ const raw=parseInt(numInput.value,10); if(!isNaN(raw)){ const c=Math.max(6,Math.min(64,raw)); slider.value=c; slider.setAttribute('aria-valuenow',c); updateFill(c); positionTooltip(c); } });
+numInput.addEventListener('blur', ()=>{
+  const newVal = parseInt(numInput.value,10) || 16;
+  const snapped = snapValue(Math.max(6, Math.min(64, newVal)));
+  setLength(snapped, 'number');
+  // only regenerate if length actually changed
+  if(snapped !== numFocusVal) render();
+});
+numInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){e.preventDefault();numInput.blur();} });
+
+/* ── Toggles ── */
+['sw-numbers','sw-symbols','sw-mixed'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',()=>{ const el=document.getElementById(id); el.setAttribute('aria-checked',el.checked?'true':'false'); render(); });
+});
+
+/* ── Visibility ── */
+document.getElementById('btn-vis').addEventListener('click',()=>{
+  visible=!visible;
+  const btn=document.getElementById('btn-vis');
+  btn.setAttribute('aria-pressed',String(visible));
+  btn.setAttribute('aria-label',visible?'Hide password':'Show password');
+  iconVis.textContent=visible?'visibility_off':'visibility';
+  typewrite(visible ? currentPw : '*'.repeat(currentPw.length));
+});
+
+/* ── Regen ── */
+document.getElementById('btn-regen').addEventListener('click', render);
+
+/* ── Copy ── */
+const ICON_COPY='content_copy';
+const ICON_CHECK='check';
+function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0;';document.body.appendChild(ta);ta.focus();ta.select();const ok=document.execCommand('copy');document.body.removeChild(ta);return ok;}
+function showCopySuccess(){ iconCopyEl.textContent=ICON_CHECK; copyBtn.classList.add('copied'); copiedInl.classList.add('show'); clearTimeout(copyTimer); copyTimer=setTimeout(()=>{ iconCopyEl.textContent=ICON_COPY; copyBtn.classList.remove('copied'); copiedInl.classList.remove('show'); },2200); }
+function showCopyError(){ clearTimeout(errorTimer); errorPop.classList.add('show'); errorTimer=setTimeout(()=>errorPop.classList.remove('show'),3000); }
+document.getElementById('btn-copy').addEventListener('click',()=>{
+  if(!currentPw)return;
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(currentPw).then(showCopySuccess).catch(()=>fallbackCopy(currentPw)?showCopySuccess():showCopyError()); }
+  else { fallbackCopy(currentPw)?showCopySuccess():showCopyError(); }
+});
+
+/* ── updateFill: no visual fill on track by design ── */
+function updateFill(val) { /* intentionally empty — plain track */ }
+
+/* ── Credits panel — with focus trap and Escape close ── */
+const creditsOverlay = document.getElementById('credits-overlay');
+const creditsPanel   = creditsOverlay.querySelector('.credits-panel');
+const creditsClose   = document.getElementById('credits-close');
+let prevFocus = null;
+
+function openCredits() {
+  prevFocus = document.activeElement;
+  creditsOverlay.classList.add('show');
+  creditsClose.focus();
+}
+function closeCredits() {
+  creditsOverlay.classList.remove('show');
+  if (prevFocus) prevFocus.focus();
+}
+
+document.getElementById('btn-info').addEventListener('click', openCredits);
+creditsClose.addEventListener('click', closeCredits);
+creditsOverlay.addEventListener('click', e => {
+  if (e.target === creditsOverlay) closeCredits();
+});
+
+/* Escape key */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && creditsOverlay.classList.contains('show')) {
+    closeCredits();
+  }
+});
+
+/* Focus trap inside dialog */
+creditsOverlay.addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const focusable = Array.from(creditsPanel.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  )).filter(el => !el.disabled);
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last  = focusable[focusable.length - 1];
+  if (e.shiftKey) {
+    if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+  } else {
+    if (document.activeElement === last)  { e.preventDefault(); first.focus(); }
+  }
+});
+
+/* ── Init ── */
+applyTheme();
+setLength(16,'init');
+render();
+window.addEventListener('resize', updateFade);
+</script>
+</body>
+</html>
