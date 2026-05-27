@@ -63,6 +63,14 @@ function switchTab(id) {
 document.getElementById('tab-password').addEventListener('click', () => switchTab('password'));
 document.getElementById('tab-options').addEventListener('click',  () => switchTab('options'));
 
+/* Arrow key navigation between tabs — ARIA tab pattern */
+document.querySelector('.tab-bar').addEventListener('keydown', e => {
+  const tabs = ['password','options'];
+  const current = tabs.findIndex(t => document.getElementById('tab-'+t).classList.contains('active'));
+  if (e.key === 'ArrowRight') { e.preventDefault(); switchTab(tabs[(current+1)%tabs.length]); document.getElementById('tab-'+tabs[(current+1)%tabs.length]).focus(); }
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); switchTab(tabs[(current-1+tabs.length)%tabs.length]); document.getElementById('tab-'+tabs[(current-1+tabs.length)%tabs.length]).focus(); }
+});
+
 /* ── Tooltip ── */
 function positionTooltip(val) { tooltip.style.left=(2+(val-6)/(64-6)*(slider.offsetWidth-4))+'px'; tooltip.textContent=val; }
 function showTip() { sliderWrap.classList.add('show-tip'); }
