@@ -2,7 +2,29 @@
 
 A clean, secure, single-file Chrome extension for generating strong passwords.
 
-![Light mode](docs/screenshot-light.png)
+![Light mode — Password tab](docs/screenshot-light.png)
+
+![Light mode — Options tab](docs/screenshot-light-options.png)
+
+![Dark mode — Options tab](docs/screenshot-dark.png)
+
+---
+
+## Why this exists
+
+Chrome's built-in password generator works well inside forms, but it has two limitations that pushed me to build this. First, it isn't always triggered — it only appears on certain input fields and many sites don't activate it at all. Second, when it does appear, the generated passwords aren't customisable: you can't control length, choose whether to include symbols, or adjust character composition to meet a specific site's requirements.
+
+This extension puts a configurable password generator one click away, available on any page, any time, regardless of what the form underneath is doing.
+
+---
+
+## The process
+
+This project was also a deliberate end-to-end exercise. I wanted to go through the full cycle of building and shipping a small product — not just writing code, but making design decisions, running QA and security testing, debugging in a real browser context, and setting up a public GitHub repository from scratch.
+
+The entire extension was built in a single session using Claude. Every design decision, every usability issue, every security consideration was worked through in conversation — from the entropy-based strength model to the Manifest V3 CSP constraints to the typewriter animation speed. The result is a tool I actually use, built through a process I learned from.
+
+---
 
 ## Features
 
@@ -11,8 +33,9 @@ A clean, secure, single-file Chrome extension for generating strong passwords.
 - **Configurable** — length 6–64 with snap points at every 8 characters, toggle numbers / symbols / mixed case
 - **Typewriter animation** — visual confirmation every time a new password generates
 - **Light / Dark / System theme** — follows your OS or set manually
-- **No data collected** — passwords never leave your device, no network requests except Google Fonts
+- **No data collected** — passwords never leave your device, no network requests
 - **No ads, no tracking, no accounts**
+- **Fully self-contained** — IBM Plex Mono embedded, no external dependencies
 
 ## Strength scale
 
@@ -40,9 +63,7 @@ A clean, secure, single-file Chrome extension for generating strong passwords.
 ## Tech stack
 
 - Vanilla HTML, CSS, JavaScript — zero dependencies, zero build step
-- [Roboto](https://fonts.google.com/specimen/Roboto) — Google Fonts (Apache 2.0)
-- [Roboto Mono](https://fonts.google.com/specimen/Roboto+Mono) — Google Fonts (Apache 2.0)
-- [Material Symbols](https://fonts.google.com/icons) — Google Fonts (Apache 2.0)
+- [IBM Plex Mono](https://fonts.google.com/specimen/IBM+Plex+Mono) — IBM — SIL Open Font License
 
 ## Credits
 
