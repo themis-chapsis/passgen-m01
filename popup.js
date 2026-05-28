@@ -101,6 +101,7 @@ function generate(s) {
   let pool=LOWER;
   if(s.mixed) pool+=UPPER; if(s.numbers) pool+=DIGITS; if(s.symbols) pool+=SYMS;
   const buf=new Uint32Array(s.length); crypto.getRandomValues(buf);
+  // Modulo bias: ~0.02% for max pool size 94 — negligible vs 2^32 range. Intentional choice.
   return Array.from(buf).map(n=>pool[n%pool.length]).join('');
 }
 
