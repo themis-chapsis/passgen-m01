@@ -30,6 +30,10 @@ function applyTheme() {
 
 function setTheme(mode) {
   themeMode = mode;
+  // SECURITY NOTE: only the key 'theme' with values 'light'|'dark'|'system' is ever written.
+  // chrome.storage.sync must NEVER be used in this codebase — it would sync data to Google servers.
+  // Passwords are never stored in any form.
+  chrome.storage.local.set({ theme: mode });
   ['system','light','dark'].forEach(m => {
     const btn = document.getElementById('theme-'+m);
     btn.classList.toggle('active', m === mode);
@@ -292,10 +296,13 @@ creditsOverlay.addEventListener('keydown', e => {
   }
 });
 
-/* ── Init ── */
-applyTheme();
-setLength(16,'init');
-render();
+/* ── Init — restore saved theme then initialise ── */
+chrome.storage.local.get('theme', result => {
+  if (result.theme) themeMode = result.theme;
+  applyTheme();
+  setLength(16, 'init');
+  render();
+});
 window.addEventListener('resize', updateFade);
 
 /* ── Cleanup on close ── */
