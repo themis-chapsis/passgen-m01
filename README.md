@@ -2,11 +2,11 @@
 
 A clean, secure, single-file Chrome extension for generating strong passwords.
 
-![Light mode — Password tab](docs/screenshot-light.png)
+![Light mode — Password tab](docs/screenshot-light.jpeg)
 
-![Light mode — Options tab](docs/screenshot-light-options.png)
+![Light mode — Options tab](docs/screenshot-light-options.jpeg)
 
-![Dark mode — Options tab](docs/screenshot-dark.png)
+![Dark mode — Options tab](docs/screenshot-dark.jpeg)
 
 ---
 
