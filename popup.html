@@ -403,6 +403,7 @@ html[data-theme="dark"] .seg.active.bonkers   { background: #fff; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 </style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src data:; frame-ancestors 'none';">
 </head>
 <body>
 
@@ -472,7 +473,7 @@ html[data-theme="dark"] .seg.active.bonkers   { background: #fff; }
       </div>
       <div class="slider-wrap" id="slider-wrap">
         <div class="slider-tooltip" id="slider-tooltip" aria-hidden="true">16</div>
-        <input type="range" id="length-slider" min="6" max="64" value="16" step="1" aria-label="Password length" aria-valuemin="6" aria-valuemax="64" aria-valuenow="16">
+        <input type="range" id="length-slider" autocomplete="off" min="6" max="64" value="16" step="1" aria-label="Password length" aria-valuemin="6" aria-valuemax="64" aria-valuenow="16">
         <div class="slider-end-labels" aria-hidden="true"><span>6</span><span>64</span></div>
       </div>
     </div>
@@ -543,6 +544,6 @@ html[data-theme="dark"] .seg.active.bonkers   { background: #fff; }
   </div>
 </div>
 
-<script src="popup.js"></script>
+<script src="popup.js" integrity="sha384-ozbG3iLGA14gOCj2/UfnrpjK2jNabF0KwRhwGZVfyBUDhI3+zuazqFLY17Qv4ItX" crossorigin="anonymous"></script>
 </body>
 </html>

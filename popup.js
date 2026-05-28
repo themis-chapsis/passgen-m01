@@ -144,7 +144,12 @@ function render() {
   badge.className='strength-badge '+cls;
   badge.setAttribute('aria-label','Password strength: '+label);
   if(cls==='bonkers'){
-    badge.innerHTML='<span class="bonkers-text" aria-hidden="true">'+label+'</span>';
+    badge.textContent='';
+    const span=document.createElement('span');
+    span.className='bonkers-text';
+    span.setAttribute('aria-hidden','true');
+    span.textContent=label;
+    badge.appendChild(span);
   } else {
     badge.textContent=label;
   }
@@ -186,9 +191,24 @@ document.getElementById('btn-vis').addEventListener('click',()=>{
   const btn=document.getElementById('btn-vis');
   btn.setAttribute('aria-pressed',String(visible));
   btn.setAttribute('aria-label',visible?'Hide password':'Show password');
-  const EYE_OPEN='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-  const EYE_SHUT='<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1=\"1\" y1=\"1\" x2=\"23\" y2=\"23\"/>';
-  iconVis.innerHTML=visible?EYE_SHUT:EYE_OPEN;
+  // Safe SVG swap via attribute mutation — no innerHTML
+  const NS='http://www.w3.org/2000/svg';
+  while(iconVis.firstChild) iconVis.removeChild(iconVis.firstChild);
+  if(visible){
+    const p1=document.createElementNS(NS,'path');
+    p1.setAttribute('d','M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94');
+    const p2=document.createElementNS(NS,'path');
+    p2.setAttribute('d','M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19');
+    const l=document.createElementNS(NS,'line');
+    l.setAttribute('x1','1'); l.setAttribute('y1','1'); l.setAttribute('x2','23'); l.setAttribute('y2','23');
+    iconVis.appendChild(p1); iconVis.appendChild(p2); iconVis.appendChild(l);
+  } else {
+    const p=document.createElementNS(NS,'path');
+    p.setAttribute('d','M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z');
+    const c=document.createElementNS(NS,'circle');
+    c.setAttribute('cx','12'); c.setAttribute('cy','12'); c.setAttribute('r','3');
+    iconVis.appendChild(p); iconVis.appendChild(c);
+  }
   typewrite(visible ? currentPw : '*'.repeat(currentPw.length));
 });
 
@@ -196,10 +216,27 @@ document.getElementById('btn-vis').addEventListener('click',()=>{
 document.getElementById('btn-regen').addEventListener('click', render);
 
 /* ── Copy ── */
-const ICON_COPY='<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>';
-const ICON_CHECK='<polyline points="20 6 9 17 4 12"/>';
+// Pre-built DOM elements for copy/check icons — no innerHTML
+const NS_SVG='http://www.w3.org/2000/svg';
+function buildCopyIcon(){
+  const r=document.createElementNS(NS_SVG,'rect');
+  r.setAttribute('x','9'); r.setAttribute('y','9');
+  r.setAttribute('width','13'); r.setAttribute('height','13'); r.setAttribute('rx','2');
+  const p=document.createElementNS(NS_SVG,'path');
+  p.setAttribute('d','M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1');
+  return [r,p];
+}
+function buildCheckIcon(){
+  const pl=document.createElementNS(NS_SVG,'polyline');
+  pl.setAttribute('points','20 6 9 17 4 12');
+  return [pl];
+}
+function setIconNodes(el, nodes){
+  while(el.firstChild) el.removeChild(el.firstChild);
+  nodes.forEach(n=>el.appendChild(n));
+}
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0;';document.body.appendChild(ta);ta.focus();ta.select();const ok=document.execCommand('copy');document.body.removeChild(ta);return ok;}
-function showCopySuccess(){ iconCopyEl.innerHTML=ICON_CHECK; copyBtn.classList.add('copied'); copiedInl.classList.add('show'); clearTimeout(copyTimer); copyTimer=setTimeout(()=>{ iconCopyEl.innerHTML=ICON_COPY; copyBtn.classList.remove('copied'); copiedInl.classList.remove('show'); },2200); }
+function showCopySuccess(){ setIconNodes(iconCopyEl, buildCheckIcon()); copyBtn.classList.add('copied'); copiedInl.classList.add('show'); clearTimeout(copyTimer); copyTimer=setTimeout(()=>{ setIconNodes(iconCopyEl, buildCopyIcon()); copyBtn.classList.remove('copied'); copiedInl.classList.remove('show'); },2200); }
 function showCopyError(){ clearTimeout(errorTimer); errorPop.classList.add('show'); errorTimer=setTimeout(()=>errorPop.classList.remove('show'),3000); }
 document.getElementById('btn-copy').addEventListener('click',()=>{
   if(!currentPw)return;
