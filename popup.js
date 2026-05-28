@@ -235,7 +235,7 @@ function setIconNodes(el, nodes){
   while(el.firstChild) el.removeChild(el.firstChild);
   nodes.forEach(n=>el.appendChild(n));
 }
-function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0;';document.body.appendChild(ta);ta.focus();ta.select();const ok=document.execCommand('copy');document.body.removeChild(ta);return ok;}
+function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed'; ta.style.top='-9999px'; ta.style.left='-9999px'; ta.style.opacity='0'; /* hardcoded — safe, but individual props prevent future injection risk */document.body.appendChild(ta);ta.focus();ta.select();const ok=document.execCommand('copy');document.body.removeChild(ta);return ok;}
 function showCopySuccess(){ setIconNodes(iconCopyEl, buildCheckIcon()); copyBtn.classList.add('copied'); copiedInl.classList.add('show'); clearTimeout(copyTimer); copyTimer=setTimeout(()=>{ setIconNodes(iconCopyEl, buildCopyIcon()); copyBtn.classList.remove('copied'); copiedInl.classList.remove('show'); },2200); }
 function showCopyError(){ clearTimeout(errorTimer); errorPop.classList.add('show'); errorTimer=setTimeout(()=>errorPop.classList.remove('show'),3000); }
 document.getElementById('btn-copy').addEventListener('click',()=>{
@@ -297,3 +297,9 @@ applyTheme();
 setLength(16,'init');
 render();
 window.addEventListener('resize', updateFade);
+
+/* ── Cleanup on close ── */
+window.addEventListener('beforeunload', () => {
+  currentPw = '';
+  field.value = '';
+});
