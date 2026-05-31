@@ -394,3 +394,4 @@ html[data-theme="dark"] .seg.active.bonkers   { background: #fff; }
 .credits-close:hover { background: var(--bg-secondary); }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+fieldset { border: none; padding: 0; margin: 0; }
